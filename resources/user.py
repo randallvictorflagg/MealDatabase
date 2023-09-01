@@ -1,0 +1,136 @@
+from flask_restful import Resource, reqparse
+from models.user import UserModel
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt
+from resources.hash_password import hash_password, check_hashed_password
+from resources.extend_date import extend_license
+
+
+
+class User(Resource):
+    
+    def get(self, user_id):
+        user = UserModel.find_user(user_id)
+        if user:
+            return user.json()
+        return {'message': 'User not found.'}, 404 #not found
+    
+    @jwt_required()
+    def delete(self, user_id):
+        jwt = get_jwt()
+        if jwt.get("user_type") != 0:
+            return {"message": "Admin privilege required."},401
+        user = UserModel.find_user(user_id)
+        if user:
+            try:
+                user.delete_user()
+            except:
+               return {'message': 'An internal error ocurred trying to delete user.'}, 500 
+            return {'message': 'User deleted.'}
+        return{'message':'User not found.'},404    
+        
+class UserRegister(Resource):
+    @jwt_required()
+    def post(self):
+        jwt = get_jwt()
+        if jwt.get("user_type") != 0:
+            return {"message": "Admin privilege required."},401
+        atributes = reqparse.RequestParser()
+        atributes.add_argument('login', type=str, required=True, help="The field 'login' cannot be null.")
+        atributes.add_argument('password', type=str, required=True, help="The field 'password' cannot be null.")
+        atributes.add_argument('status', type=int, required=True, help="The field 'status' cannot be null.")
+        atributes.add_argument('type', type=str, required=True, help="The field 'type' cannot be null.")
+        dados = atributes.parse_args()
+        dados['password'] = hash_password(dados['password'])
+        if UserModel.find_by_login(dados['login']):
+            return {"message": "The login '{}' already exists.".format(dados['login'])}
+        user = UserModel(**dados)
+        user.save_user()
+        return {'message':'User created successfully.'}, 201
+    
+    @jwt_required()
+    def patch(self):
+        jwt = get_jwt()
+        atributes = reqparse.RequestParser()
+        atributes.add_argument('login', type=str)     
+        atributes.add_argument('password', type=str)  
+        atributes.add_argument('new_password', type=str)
+        atributes.add_argument('confirm_password',type=str)
+        atributes.add_argument('status', type=int)
+        dados = atributes.parse_args()
+        user = UserModel.find_user(jwt.get("user_id"))
+        if dados['login']:
+            if (dados["login"] != jwt.get("login") and UserModel.find_by_login(dados['login']) is not None): 
+                return {"message": "The login '{}' already exists.".format(dados['login'])}, 400
+            else:
+                user.login = dados['login']
+        if (dados['new_password']!=dados['confirm_password'] or \
+        ((dados['new_password'] is None and dados['confirm_password'] is not None) or \
+        (dados['new_password'] is not None and dados['confirm_password'] is None))):
+            if (dados["password"]) is None:
+                return{'message': "Password is needed to confirm this operation."}
+            else:
+                return {"message": "The new password confirmation didn't match."}, 422
+        elif dados['password'] is not None:
+            if check_hashed_password(dados['password'], user.password) == False: 
+                return {'message':'Password is not correct.'}, 401
+            else:
+                if dados['new_password'] is not None:
+                    user.password = hash_password(dados['new_password'])
+        user.update_user(user)
+        user.save_user()
+        return {'message':'User updated successfully.'}
+            
+        
+        
+
+class UserLogin(Resource):
+    @classmethod
+    def post(cls):
+        atributes = reqparse.RequestParser()
+        atributes.add_argument('login', type=str, required=True, help="The field 'login' cannot be null.")
+        atributes.add_argument('password', type=str, required=True, help="The field 'password' cannot be null.")
+        
+        dados = atributes.parse_args()
+        user = UserModel.find_by_login(dados['login'])
+        if(user is None):
+            return{'message': 'The user was not found.'}, 404
+        claims = {"user_type":user.type,"user_id": user.user_id,"login": user.login}
+        if(user.status == 0):
+            return{'message': 'User is not active.'}, 401
+        if user and check_hashed_password(dados['password'], user.password): 
+            access_token = create_access_token(identity = user.user_id,additional_claims=claims)
+            return {'access_token': access_token}, 200
+        return{'message': 'The username or password is incorrect.'}, 401
+
+
+class UserLogout (Resource):
+    @jwt_required()
+    def post(self):
+        jwt_id = get_jwt()['jti'] #JWT Token Identifier
+        #BLACKLIST.add(jwt_id)
+        return {'message': 'Logged out successfully.'}, 200
+
+class PasswordReset(Resource):
+    @jwt_required()
+    def post():
+        pass  #é esperado que seja possível realizar a alteração de senha para usuários autenticados e não autenticados
+        #para esse, é necessário inserir user, senha antiga, senha nova e confirmar senha nova. Tambem adicionar 
+        # lógica para verificar se é o próprio user que está mudando a senha e/ou se é um admin
+
+class DateExtend(Resource):
+    @jwt_required()
+    def post(self,user_id):
+        jwt = get_jwt()
+        if jwt.get("user_type") != 0:
+            return {"message": "Admin privilege required."},401
+        user = UserModel.find_user(user_id)
+        if not user:
+            return{'message': 'User not found.'}, 404
+        else:
+            atributes = reqparse.RequestParser()
+            atributes.add_argument('months', type=int)     
+            dados = atributes.parse_args()
+            new_date = extend_license(user.validUntil,dados.months)
+            user.validUntil = new_date
+            user.update_user(user)
+            user.save_user()
