@@ -2,7 +2,7 @@ from flask_restful import Resource, reqparse
 from models.food import FoodModel
 from flask_jwt_extended import jwt_required, get_jwt
 from resources.extend_date import extend_license
-from resources.queries import normalize_path_params,search_by_name,search_by_description,search_split_description
+from resources.queries import normalize_path_params,search_by_name,search_by_description,description_search_query_builder
 import sqlite3
 
 path_params = reqparse.RequestParser()
@@ -86,6 +86,7 @@ class FoodResgister(Resource):
         return {'message':'Food created successfully.'}, 201
 
 class FoodSearch(Resource):
+    @jwt_required()
     def get(self):
         connection = sqlite3.connect('instance/banco.db')
         cursor = connection.cursor()
@@ -131,15 +132,29 @@ class FoodSearch(Resource):
                     'brand': linha[4],
                     'description': linha[7]
                 })
-            connection.close()
             if len(foodlist)!=0:
                 return {'food': foodlist}
             else:
-                #adicionar logica para busca de palavras soltas
-                #contar os IDs retornados em cada resultado para criar uma 
-                #"pontuação" e montar uma lista ordenada com os itens de pontuação maior, respeitando o offset
-                search_split_description(parametros.get('description'))
-                return{'message': 'Name not found.'},404
-
+                word_list = parametros.get('description').split()
+                if len(word_list) == 1:
+                    return{'message': 'Name not found.'},404
+                else:
+                    query = description_search_query_builder(word_list)
+                    resultado = cursor.execute(query)
+                    foodlist = []
+                    for linha in resultado:
+                        foodlist.append({
+                            'food_id': linha[0],
+                            'user_id': linha[1],
+                            'barcode': linha[2],
+                            'name': linha[3],
+                            'brand': linha[4],
+                            'description': linha[7]
+                        })
+                    connection.close()
+                    if len(foodlist)!=0:
+                        return {'food': foodlist}
+                    return{'message': 'No item found with this description.'},404
+        connection.close()        
         return{'message': 'No item found.'},404
         

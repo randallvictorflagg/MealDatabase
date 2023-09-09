@@ -15,6 +15,12 @@ search_by_description = "SELECT * FROM food \
             WHERE description like '%'||?||'%' \
             LIMIT ? OFFSET ?"
 
-def search_split_description(search):
-        teste = search.split()
-        print('\n',teste,'\n')
+
+def description_search_query_builder(word_list):
+        print('\n',word_list,'\n')
+        base_query = "SELECT * FROM food WHERE "
+        for i in word_list:
+            base_query = base_query + "description like "
+            base_query = base_query + "'%"+i+"%' " + "AND "
+        base_query = base_query[:-4]    
+        return(base_query)
