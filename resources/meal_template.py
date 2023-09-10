@@ -22,7 +22,7 @@ class MealTemplate(Resource):
         jwt = get_jwt()
         if (jwt.get("user_type") != 0 and jwt.get("user_type") != 1):
             return {"message": "User type not allowed for this operation."},401
-        meal_template = MealTemplateModel.find_food(meal_template_id)
+        meal_template = MealTemplateModel.find_meal_template(meal_template_id)
         if meal_template:
             if(jwt.get("user_id") != meal_template.user_id and jwt.get("user_type")!= 0):
                 return {"message": "User not allowed for this operation."},401

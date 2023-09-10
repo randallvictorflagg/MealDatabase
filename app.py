@@ -3,6 +3,7 @@ from flask_restful import Api
 from resources.user import  User, UserRegister, UserLogin, UserLogout, DateExtend
 from resources.food import Food,FoodResgister,FoodSearch
 from resources.meal_template import MealTemplate,MealTemplateRegister,MealTemplateSearch
+from resources.single_meal import SingleMeal, SingleMealRegister
 from flask_jwt_extended import JWTManager
 from datetime import datetime, timedelta
 
@@ -33,6 +34,8 @@ api.add_resource(FoodResgister, '/food')
 api.add_resource(MealTemplate, '/meal_template/<int:meal_template_id>')
 api.add_resource(MealTemplateRegister, '/meal_template/register')
 api.add_resource(MealTemplateSearch, '/meal_template')
+api.add_resource(SingleMeal,'/single_meal/<int:single_meal_id>')
+api.add_resource(SingleMealRegister,'/single_meal/register')
 
 if __name__ == '__main__':
     from sql_alchemy import banco
