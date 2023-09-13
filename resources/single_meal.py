@@ -10,7 +10,12 @@ class SingleMeal(Resource):
     def get(self, single_meal_id):
         single_meal = SingleMealModel.find_single_meal(single_meal_id)
         if single_meal:
-            return single_meal.json()
+            try:
+                return single_meal.json()
+            finally:
+                single_meal.has_been_used = 1
+                print(single_meal.has_been_used)
+                single_meal.save_single_meal()
         return {'message': 'Meal not found.'}, 404 #not found
      
     @jwt_required()

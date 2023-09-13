@@ -5,6 +5,14 @@ def normalize_path_params(barcode=None, name=None,description=None, limit = 50, 
             'limit': limit,
             'description': description,
             'offset': offset}
+
+def normalize_meal_serch_params(meal_template_name=None, user_id=None,description=None, limit = 50, offset = 0, **dados):
+        return {
+            'meal_template_name': meal_template_name,
+            'limit': limit,
+            'user_id': user_id,
+            'offset': offset
+            }
     
 
 
@@ -15,6 +23,10 @@ search_by_description = "SELECT * FROM food \
             WHERE description like '%'||?||'%' \
             LIMIT ? OFFSET ?"
 
+search_meal_template_by_name = "SELECT * FROM meal_template\
+                                WHERE meal_template_name like '%'||?||'%'\
+                                and user_id = ?\
+                                LIMIT? OFFSET ?"
 
 def description_search_query_builder(word_list):
         print('\n',word_list,'\n')

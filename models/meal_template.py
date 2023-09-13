@@ -118,7 +118,7 @@ class MealTemplateModel(banco.Model):
     
    
     def update_meal_template(self,meal_template):
-        self.name = meal_template.name
+        self.meal_template_name = meal_template.meal_template_name
 
     def  save_meal_template(self):
         banco.session.add(self)

@@ -1,7 +1,6 @@
 from flask_restful import Resource, reqparse
 from models.food import FoodModel
 from flask_jwt_extended import jwt_required, get_jwt
-from resources.extend_date import extend_license
 from resources.queries import normalize_path_params,search_by_name,search_by_description,description_search_query_builder
 import sqlite3
 
@@ -48,7 +47,7 @@ class FoodResgister(Resource):
         atributes = reqparse.RequestParser()
         atributes.add_argument('user_id',type=str)
         atributes.add_argument('barcode',type=str)
-        atributes.add_argument('name',type=str, required=True, help="The field 'login' cannot be null.")
+        atributes.add_argument('name',type=str, required=True, help="The field 'Name' cannot be null.")
         atributes.add_argument('brand',type=str)
         atributes.add_argument('description',type=str)
         atributes.add_argument('ingredients',type=str)
@@ -84,6 +83,61 @@ class FoodResgister(Resource):
         food = FoodModel(**dados)
         food.save_food()
         return {'message':'Food created successfully.'}, 201
+    
+    @jwt_required()
+    def patch(self):
+        jwt = get_jwt()
+        if (jwt.get("user_type") != 0 and jwt.get("user_type") != 1):
+            return {"message": "User type not allowed for this operation."},401
+        atributes = reqparse.RequestParser()
+        atributes.add_argument('food_id',type=str)
+        atributes.add_argument('barcode',type=str)
+        atributes.add_argument('name',type=str)
+        atributes.add_argument('brand',type=str)
+        atributes.add_argument('description',type=str)
+        atributes.add_argument('ingredients',type=str)
+        atributes.add_argument('serving_unit',type=str)
+        atributes.add_argument('serving_amount',type=float)
+        atributes.add_argument('calories',type=int)
+        atributes.add_argument('carbohydrate',type=float)
+        atributes.add_argument('protein',type=float)
+        atributes.add_argument('total_fat',type=float)
+        atributes.add_argument('saturated_fat',type=float)
+        atributes.add_argument('polyunsaturated_fat',type=float)
+        atributes.add_argument('monounsaturated_fat',type=float)
+        atributes.add_argument('trans_fat',type=float)
+        atributes.add_argument('cholesterol',type=float)
+        atributes.add_argument('sodium',type=float)
+        atributes.add_argument('fiber',type=float)
+        atributes.add_argument('sugar',type=float)
+        atributes.add_argument('vitamin_a',type=float)
+        atributes.add_argument('vitamin_b1',type=float)
+        atributes.add_argument('vitamin_b12',type=float)
+        atributes.add_argument('vitamin_c',type=float)
+        atributes.add_argument('vitamin_d',type=float)
+        atributes.add_argument('vitamin_e',type=float)
+        atributes.add_argument('vitamin_k',type=float)
+        atributes.add_argument('potassium',type=float)
+        atributes.add_argument('zync',type=float)
+        atributes.add_argument('magnesium',type=float)
+        atributes.add_argument('iron',type=float)
+        atributes.add_argument('chromium',type=float)
+        dados = atributes.parse_args()
+        food = FoodModel.find_food(dados['food_id'])    
+        if food:    
+            if(food.user_id != jwt.get("user_id") and jwt.get("user_type") != 0):
+                return {"message": "User not allowed for this operation."},401
+            else:
+                for dado in dados:
+                    if(dados[dado] is not None):
+                        setattr(food,str(dado),dados[dado])
+            
+        else:
+            return{'message': 'Food not found.'}
+        food.update_food()
+        food.save_food()
+        return {'message':"Food updated successfully."}, 200
+    
 
 class FoodSearch(Resource):
     @jwt_required()
@@ -91,10 +145,8 @@ class FoodSearch(Resource):
         connection = sqlite3.connect('instance/banco.db')
         cursor = connection.cursor()
         dados = path_params.parse_args()
-        
         dados_validos = {chave:dados[chave] for chave in dados if dados[chave] is not None}
         parametros = normalize_path_params(**dados_validos)
-        print ('\n',parametros)
         if parametros.get('barcode') is not None:
             food = FoodModel.find_by_barcode(parametros.get('barcode'))
             if food:

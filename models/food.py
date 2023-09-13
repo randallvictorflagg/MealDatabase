@@ -124,10 +124,11 @@ class FoodModel(banco.Model):
     
     @classmethod
     def find_food(cls, food_id):
-        food = cls.query.filter_by(food_id = food_id).first()
-        if food:
-            return food
-        return None
+        with banco.session.no_autoflush:
+            food = cls.query.filter_by(food_id = food_id).first()
+            if food:
+                return food
+            return None
     
     @classmethod #aqui vai acontecer busca, fazer uma busca usando o %like%, que vai retornar uma lista de IDs e descrições
     def find_by_name(cls, name):
@@ -140,9 +141,9 @@ class FoodModel(banco.Model):
             return food
         return None
     
-    def update_food(self,food):
-        self.name = food.name
-
+    def update_food(self):
+        self.updated_in =  datetime.now().strftime("%Y-%m-%d %H:%M:%S") 
+   
     def  save_food(self):
         banco.session.add(self)
         banco.session.commit()
