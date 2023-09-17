@@ -6,7 +6,7 @@ from resources.meal_template import MealTemplate,MealTemplateRegister,MealTempla
 from resources.single_meal import SingleMeal, SingleMealRegister
 from flask_jwt_extended import JWTManager
 from datetime import datetime, timedelta
-from resources.tasks import job
+from resources.tasks import job,inactivate_expired_users,delete_expired_meals
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 
@@ -26,7 +26,9 @@ jwt = JWTManager(app)
 def init_scheduler():
     scheduler = BackgroundScheduler()
     scheduler.add_job(job, trigger="interval", seconds=30)
-    print("running scheduler")
+    scheduler.add_job(inactivate_expired_users, trigger="interval", seconds=10)
+    scheduler.add_job(delete_expired_meals, trigger="interval", seconds=10)
+    print("Running Scheduler")
     scheduler.start()
     atexit.register(lambda: scheduler.shutdown())
 

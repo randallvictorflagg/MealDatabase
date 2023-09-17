@@ -36,7 +36,7 @@ class MealTemplateModel(banco.Model):
     magnesium = banco.Column(banco.Float(precision = 2)) 
     iron = banco.Column(banco.Float(precision = 2)) 
     chromium= banco.Column(banco.Float(precision = 2)) 
-
+    single_meals = banco.relationship('SingleMealModel')
  
     def __init__(self, user_id, meal_template_name, store_name,description, composition):
         self.user_id  = user_id 
@@ -125,6 +125,7 @@ class MealTemplateModel(banco.Model):
         banco.session.commit()
     
     def delete_meal_template(self):
+        [single_meal.delete_single_meal() for single_meal in self.single_meals]
         banco.session.delete(self)
         banco.session.commit()
     
