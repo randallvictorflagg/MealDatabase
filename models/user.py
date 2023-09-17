@@ -6,6 +6,7 @@ from resources.extend_date import extend_license
 class UserModel(banco.Model):
     __tablename__ = 'users'
     user_id = banco.Column(banco.Integer, primary_key = True)
+    store_name = banco.Column(banco.String(30))
     login = banco.Column (banco.String(40))
     password = banco.Column (banco.String)
     status = banco.Column (banco.Integer)
@@ -13,11 +14,13 @@ class UserModel(banco.Model):
     createdIn = banco.Column(banco.String(30))
     validUntil = banco.Column(banco.String(30))
     
-    def __init__(self, login, password, status, type):
+
+    def __init__(self, login, password, status, store_name, type):
         self.login = login
         self.password = password
         self.status = status
         self.type = type
+        self.store_name = store_name
         self.createdIn = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.validUntil = extend_license(self.createdIn, 3)
         
@@ -27,9 +30,11 @@ class UserModel(banco.Model):
             'user_id': self.user_id,
             'login': self.login,
             'status': self.status,
+            'store_name': self.store_name,
             'type': self.type,
             'createdIn': self.createdIn,
             'validUntil': self.validUntil
+
         }
     
     @classmethod
@@ -54,6 +59,7 @@ class UserModel(banco.Model):
         self.password = user.password
         self.status = user.status
         self.type = user.type
+        self.store_name = user.store_name
         self.validUntil = user.validUntil
 
     

@@ -1,12 +1,13 @@
 from sql_alchemy import banco
 from datetime import datetime
 from models.meal_template import MealTemplateModel
+from models.user import UserModel
 
 class SingleMealModel(banco.Model):
     __tablename__ = 'single_meal'
     single_meal_id = banco.Column(banco.Integer, primary_key = True)
     meal_template_id = banco.Column(banco.Integer, banco.ForeignKey('meal_template.meal_template_id')) #adicionar Relacionamento na tabela Meal_Template
-    user_id = banco.Column(banco.Integer)
+    user_id = banco.Column(banco.Integer, banco.ForeignKey('users.user_id'))
     expiration_date = banco.Column(banco.String(30))
     production_date = banco.Column(banco.String(30))
     expiration_date = banco.Column(banco.String(30))
@@ -25,7 +26,7 @@ class SingleMealModel(banco.Model):
         return {
             'single_meal_id': self.single_meal_id,
             'meal_template_id': self.meal_template_id,
-            'user_id': self.user_id,
+            'store_name': UserModel.find_user(self.user_id).store_name,
             'production_date': self.production_date,
             'expiration_date': self.expiration_date,
             'has_been_used': self.has_been_used,

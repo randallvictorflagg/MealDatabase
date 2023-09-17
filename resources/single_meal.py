@@ -7,9 +7,11 @@ from datetime import datetime,date
 
 class SingleMeal(Resource):
     
-    def get(self, single_meal_id):
+    def get(self, user_id,single_meal_id):
         single_meal = SingleMealModel.find_single_meal(single_meal_id)
         if single_meal:
+            if(single_meal.user_id != user_id):
+                return{'message': 'Incorrect user id.'}, 404
             try:
                 return single_meal.json()
             finally:

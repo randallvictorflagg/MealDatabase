@@ -217,4 +217,4 @@ class FoodSearch(Resource):
                     return{'message': 'No item found with this description.'},404
         connection.close()        
         return{'message': 'No item found.'},404
-        
+    

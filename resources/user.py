@@ -3,7 +3,7 @@ from models.user import UserModel
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt
 from resources.hash_password import hash_password, check_hashed_password
 from resources.extend_date import extend_license
-
+import sqlite3
 
 
 class User(Resource):
@@ -39,6 +39,7 @@ class UserRegister(Resource):
         atributes.add_argument('password', type=str, required=True, help="The field 'password' cannot be null.")
         atributes.add_argument('status', type=int, required=True, help="The field 'status' cannot be null.")
         atributes.add_argument('type', type=str, required=True, help="The field 'type' cannot be null.")
+        atributes.add_argument('store_name', type=str, required=True, help="The field 'store_name' cannot be null.")
         dados = atributes.parse_args()
         dados['password'] = hash_password(dados['password'])
         if UserModel.find_by_login(dados['login']):
@@ -55,9 +56,12 @@ class UserRegister(Resource):
         atributes.add_argument('password', type=str)  
         atributes.add_argument('new_password', type=str)
         atributes.add_argument('confirm_password',type=str)
+        atributes.add_argument('store_name', type=str)
         atributes.add_argument('status', type=int)
         dados = atributes.parse_args()
         user = UserModel.find_user(jwt.get("user_id"))
+        if jwt.get("user_type") != 0:
+            return {"message": "Admin privilege required."},401
         if dados['login']:
             if (dados["login"] != jwt.get("login") and UserModel.find_by_login(dados['login']) is not None): 
                 return {"message": "The login '{}' already exists.".format(dados['login'])}, 400
@@ -76,6 +80,8 @@ class UserRegister(Resource):
             else:
                 if dados['new_password'] is not None:
                     user.password = hash_password(dados['new_password'])
+        if dados['store_name']:
+            user.store_name = dados['store_name']
         user.update_user(user)
         user.save_user()
         return {'message':'User updated successfully.'}
@@ -89,7 +95,6 @@ class UserLogin(Resource):
         atributes = reqparse.RequestParser()
         atributes.add_argument('login', type=str, required=True, help="The field 'login' cannot be null.")
         atributes.add_argument('password', type=str, required=True, help="The field 'password' cannot be null.")
-        
         dados = atributes.parse_args()
         user = UserModel.find_by_login(dados['login'])
         if(user is None):

@@ -46,7 +46,7 @@ api.add_resource(FoodResgister, '/food')
 api.add_resource(MealTemplate, '/meal_template/<int:meal_template_id>')
 api.add_resource(MealTemplateRegister, '/meal_template/register')
 api.add_resource(MealTemplateSearch, '/meal_template')
-api.add_resource(SingleMeal,'/single_meal/<int:single_meal_id>')
+api.add_resource(SingleMeal,'/user/<int:user_id>/single_meal/<int:single_meal_id>')
 api.add_resource(SingleMealRegister,'/single_meal/register')
 
 if __name__ == '__main__':
