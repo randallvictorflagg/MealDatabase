@@ -152,4 +152,4 @@ class FoodModel(banco.Model):
         banco.session.delete(self)
         banco.session.commit()
     
-    
+ 

@@ -3,7 +3,7 @@ from models.meal_template import MealTemplateModel
 from flask_jwt_extended import jwt_required, get_jwt
 from resources.extend_date import extend_license
 from resources.meal_calculator import meal_calculator
-from resources.queries import search_meal_template_by_name,normalize_meal_serch_params
+from resources.queries import search_meal_template_by_name,normalize_meal_serch_params,search_meal_template_by_user_id
 
 import sqlite3
 
@@ -116,7 +116,6 @@ class MealTemplateSearch(Resource):
             resultado = cursor.execute(search_meal_template_by_name,tupla)
             meal_template_list = []
             for linha in resultado:
-                print("oi")
                 meal_template_list.append({
                     'meal_template_id': linha[0],
                     'user_id':linha[1],
@@ -129,5 +128,22 @@ class MealTemplateSearch(Resource):
                 return{'search_result': meal_template_list}
             else:
                 return{'message': 'No item found.'},404
-        return{'message': 'Please insert a template name as a parameter.'},400
+        if(parametros.get('user_id') is not None):
+                tupla = (user_id,parametros.get('limit'),parametros.get('offset'))
+                resultado = cursor.execute(search_meal_template_by_user_id,tupla)
+                meal_template_list = []
+                for linha in resultado:
+                    meal_template_list.append({
+                        'meal_template_id': linha[0],
+                        'user_id':linha[1],
+                        'meal_template_name':linha[2],
+                        'description':linha[6]
+
+                        })
+                connection.close()
+                if(len(meal_template_list))!=0:
+                    return{'search_result': meal_template_list}
+                else:
+                    return{'message': 'No item found.'},404
+        return{'message': 'Please insert a search parameter.'},400
 

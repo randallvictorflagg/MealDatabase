@@ -81,7 +81,10 @@ class FoodResgister(Resource):
         dados['user_id'] = jwt.get("user_id")
                 #verficar se barcode já existe
         food = FoodModel(**dados)
-        food.save_food()
+        if food.find_by_barcode(food.barcode):
+            return {'message': 'Barcode already exists.'},400
+        else:
+            food.save_food()
         return {'message':'Food created successfully.'}, 201
     
     @jwt_required()
@@ -123,7 +126,9 @@ class FoodResgister(Resource):
         atributes.add_argument('iron',type=float)
         atributes.add_argument('chromium',type=float)
         dados = atributes.parse_args()
+        barcode_already_exists = FoodModel.find_by_barcode(dados['barcode'])
         food = FoodModel.find_food(dados['food_id'])    
+        
         if food:    
             if(food.user_id != jwt.get("user_id") and jwt.get("user_type") != 0):
                 return {"message": "User not allowed for this operation."},401
@@ -131,11 +136,14 @@ class FoodResgister(Resource):
                 for dado in dados:
                     if(dados[dado] is not None):
                         setattr(food,str(dado),dados[dado])
-            
         else:
             return{'message': 'Food not found.'}
-        food.update_food()
-        food.save_food()
+        
+        if barcode_already_exists and barcode_already_exists.food_id != food.food_id:
+            return {'message': 'Barcode already exists.'},400
+        else:
+            food.update_food()
+            food.save_food()
         return {'message':"Food updated successfully."}, 200
     
 

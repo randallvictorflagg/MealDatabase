@@ -26,7 +26,10 @@ search_by_description = "SELECT * FROM food \
 search_meal_template_by_name = "SELECT * FROM meal_template\
                                 WHERE meal_template_name like '%'||?||'%'\
                                 and user_id = ?\
-                                LIMIT? OFFSET ?"
+                                LIMIT ? OFFSET ?"
+search_meal_template_by_user_id = "SELECT * FROM meal_template\
+                                    WHERE user_id = ?\
+                                    LIMIT ? OFFSET ?"
 
 def description_search_query_builder(word_list):
         print('\n',word_list,'\n')

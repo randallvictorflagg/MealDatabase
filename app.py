@@ -6,6 +6,9 @@ from resources.meal_template import MealTemplate,MealTemplateRegister,MealTempla
 from resources.single_meal import SingleMeal, SingleMealRegister
 from flask_jwt_extended import JWTManager
 from datetime import datetime, timedelta
+from resources.tasks import job
+from apscheduler.schedulers.background import BackgroundScheduler
+import atexit
 
 
 app = Flask(__name__)
@@ -17,6 +20,15 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(seconds=3600)
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = timedelta(seconds=3600)
 #app.config['JWT_BLACKLIST_ENABLED'] = True
 jwt = JWTManager(app)
+
+
+@app.before_first_request
+def init_scheduler():
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(job, trigger="interval", seconds=30)
+    print("running scheduler")
+    scheduler.start()
+    atexit.register(lambda: scheduler.shutdown())
 
 @app.before_first_request
 def cria_banco():
