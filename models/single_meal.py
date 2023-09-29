@@ -10,7 +10,6 @@ class SingleMealModel(banco.Model):
     user_id = banco.Column(banco.Integer, banco.ForeignKey('users.user_id'))
     expiration_date = banco.Column(banco.String(30))
     production_date = banco.Column(banco.String(30))
-    expiration_date = banco.Column(banco.String(30))
     has_been_used = banco.Column(banco.Integer)
     
 

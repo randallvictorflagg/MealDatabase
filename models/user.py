@@ -50,9 +50,6 @@ class UserModel(banco.Model):
         if user:
             return user
         return None
-    
-    def delete_user(self): #deletar todos os alimentos de um user
-        pass
 
     def update_user(self,user):
         self.login = user.login
