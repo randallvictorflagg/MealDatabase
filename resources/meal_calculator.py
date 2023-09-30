@@ -10,6 +10,8 @@ def meal_calculator(meal_template):
     for index in meal_template.composition:
         food = FoodModel.find_food(index["food_id"])
         if food:
+            if (food.serving_amount is None):
+                food.serving_amount = 0 
             try:
                 for attribute in nutrient_attributes:
                     meal_template_value = getattr(meal_template, attribute, 0)

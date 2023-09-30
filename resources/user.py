@@ -7,8 +7,11 @@ import sqlite3
 
 
 class User(Resource):
-    
+    @jwt_required()
     def get(self, user_id):
+        jwt = get_jwt()
+        if jwt.get("user_type") != 0:
+            return {"message": "Admin privilege required."},401
         user = UserModel.find_user(user_id)
         if user:
             return user.json()
@@ -41,6 +44,8 @@ class UserRegister(Resource):
         atributes.add_argument('type', type=str, required=True, help="The field 'type' cannot be null.")
         atributes.add_argument('store_name', type=str, required=True, help="The field 'store_name' cannot be null.")
         dados = atributes.parse_args()
+        if (len(dados['password'])) < 8:
+            return {"message": "The password length must be at least 8 digits."}
         dados['password'] = hash_password(dados['password'])
         if UserModel.find_by_login(dados['login']):
             return {"message": "The login '{}' already exists.".format(dados['login'])}
@@ -133,9 +138,10 @@ class DateExtend(Resource):
             return{'message': 'User not found.'}, 404
         else:
             atributes = reqparse.RequestParser()
-            atributes.add_argument('months', type=int)     
+            atributes.add_argument('months', type=int, required=True, help="The field 'months' cannot be null."), 400     
             dados = atributes.parse_args()
             new_date = extend_license(user.validUntil,dados.months)
             user.validUntil = new_date
             user.update_user(user)
             user.save_user()
+            return {"message": "Expiration date extended successfully."},200

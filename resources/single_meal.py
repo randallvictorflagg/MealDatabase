@@ -6,7 +6,7 @@ from datetime import datetime,date
 
 
 class SingleMeal(Resource):
-    
+    @jwt_required()
     def get(self, user_id,single_meal_id):
         single_meal = SingleMealModel.find_single_meal(single_meal_id)
         if single_meal:
@@ -21,7 +21,7 @@ class SingleMeal(Resource):
         return {'message': 'Meal not found.'}, 404 #not found
      
     @jwt_required()
-    def delete(self, single_meal_id):
+    def delete(self, user_id, single_meal_id):
         jwt = get_jwt()
         if (jwt.get("user_type") != 0 and jwt.get("user_type") != 1):
             return {"message": "User type not allowed for this operation."},401
@@ -47,7 +47,8 @@ class SingleMealRegister(Resource):
         atributes.add_argument('meal_template_id',type=int, required=True, help="The field 'meal_template_id' cannot be null.")
         atributes.add_argument('expiration_date',type=str, required=True, help="The field 'expiration_date' cannot be null.")
         dados = atributes.parse_args()
-        if(MealTemplateModel.find_meal_template(dados['meal_template_id'])):     
+        MealTemplate = MealTemplateModel.find_meal_template(dados['meal_template_id'])
+        if(MealTemplate is not None and MealTemplate.user_id == jwt.get("user_id")):     
             date_format = '%Y-%m-%d'
             try:
                 dateObject = datetime.strptime(dados['expiration_date'], date_format)

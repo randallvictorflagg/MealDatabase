@@ -12,15 +12,13 @@ path_params.add_argument('limit', type=float, location='values')
 path_params.add_argument('offset', type=float, location='values')
 
 class Food(Resource):
-    
+    @jwt_required()
     def get(self, food_id):
         food = FoodModel.find_food(food_id)
         if food:
             return food.json()
         return {'message': 'Food not found.'}, 404 #not found
     
-
-        
     @jwt_required()
     def delete(self, food_id):
         jwt = get_jwt()
@@ -51,8 +49,8 @@ class FoodResgister(Resource):
         atributes.add_argument('brand',type=str)
         atributes.add_argument('description',type=str)
         atributes.add_argument('ingredients',type=str)
-        atributes.add_argument('serving_unit',type=str)
-        atributes.add_argument('serving_amount',type=float)
+        atributes.add_argument('serving_unit',type=str, required=True, help="The field 'serving_unit' cannot be null.")
+        atributes.add_argument('serving_amount',type=float,  required=True, help="The field 'serving_amount' cannot be null.")
         atributes.add_argument('calories',type=int)
         atributes.add_argument('carbohydrate',type=float)
         atributes.add_argument('protein',type=float)
@@ -81,7 +79,9 @@ class FoodResgister(Resource):
         dados['user_id'] = jwt.get("user_id")
                 #verficar se barcode já existe
         food = FoodModel(**dados)
-        if food.find_by_barcode(food.barcode):
+        if food.barcode == "":
+            food.barcode = None
+        if food.barcode is not None and food.barcode != "" and food.find_by_barcode(food.barcode):
             return {'message': 'Barcode already exists.'},400
         else:
             food.save_food()
@@ -139,7 +139,7 @@ class FoodResgister(Resource):
         else:
             return{'message': 'Food not found.'}
         
-        if barcode_already_exists and barcode_already_exists.food_id != food.food_id:
+        if barcode_already_exists and barcode_already_exists.food_id != food.food_id and (barcode_already_exists.barcode is not None and barcode_already_exists.barcode != ""):
             return {'message': 'Barcode already exists.'},400
         else:
             food.update_food()

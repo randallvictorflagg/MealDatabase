@@ -16,10 +16,11 @@ path_params.add_argument('offset', type=float, location='values')
 
 
 class MealTemplate(Resource):
-    
+    @jwt_required()
     def get(self, meal_template_id):
+        jwt = get_jwt()
         meal_template = MealTemplateModel.find_meal_template(meal_template_id)
-        if meal_template:
+        if meal_template and (meal_template.user_id == jwt.get("user_id") or jwt.get("user_type") == 0):
             return meal_template.json()
         return {'message': 'Meal template not found.'}, 404 #not found
             

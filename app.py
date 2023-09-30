@@ -36,6 +36,9 @@ def init_scheduler():
 def cria_banco():
     banco.create_all()
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return {"message": "Item not found."},404
 
 api.add_resource(User, '/user/<int:user_id>')
 api.add_resource(UserRegister, '/user/register')
