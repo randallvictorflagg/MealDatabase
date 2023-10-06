@@ -41,7 +41,7 @@ class SingleMealRegister(Resource):
     @jwt_required()
     def post(self):
         jwt = get_jwt()
-        if (jwt.get("user_type") != 0 and jwt.get("user_type") != 1 and jwt.get("user_type") != 3):
+        if (jwt.get("user_type") != 0 and jwt.get("user_type") != 1):
             return {"message": "User type not allowed for this operation."},401
         atributes = reqparse.RequestParser()
         atributes.add_argument('meal_template_id',type=int, required=True, help="The field 'meal_template_id' cannot be null.")

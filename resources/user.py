@@ -84,6 +84,8 @@ class UserRegister(Resource):
                 return {'message':'Password is not correct.'}, 401
             else:
                 if dados['new_password'] is not None:
+                    if (len(dados['new_password'])) < 8:
+                        return {"message": "The password length must be at least 8 digits."}
                     user.password = hash_password(dados['new_password'])
         if dados['store_name']:
             user.store_name = dados['store_name']

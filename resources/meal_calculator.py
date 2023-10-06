@@ -8,6 +8,8 @@ def meal_calculator(meal_template):
     for attribute in nutrient_attributes:
         setattr(meal_template, attribute,0)
     for index in meal_template.composition:
+        if "food_id" not in index or "food_amount" not in index:
+            return "One or more fields in food composition is missing."
         food = FoodModel.find_food(index["food_id"])
         if food:
             if (food.serving_amount is None):

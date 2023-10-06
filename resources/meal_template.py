@@ -107,10 +107,13 @@ class MealTemplateSearch(Resource):
         dados = path_params.parse_args()
         dados_validos = {chave:dados[chave] for chave in dados if dados[chave] is not None}
         parametros=normalize_meal_serch_params(**dados_validos)
-        if parametros.get('user_id') is not None and jwt.get('user_type') == 0:
+        if(parametros.get('user_id') is None and parametros.get('meal_template_name') is None):
+            user_id = jwt.get('user_id') 
+        elif parametros.get('user_id') is not None and jwt.get('user_type') == 0:
             user_id = parametros.get('user_id')
         else:
             user_id = jwt.get('user_id') 
+            
         if(parametros.get('meal_template_name')) is not None:
             tupla = (parametros.get('meal_template_name'),user_id,parametros.get('limit'),parametros.get('offset'))
             print(tupla)
@@ -129,7 +132,7 @@ class MealTemplateSearch(Resource):
                 return{'search_result': meal_template_list}
             else:
                 return{'message': 'No item found.'},404
-        if(parametros.get('user_id') is not None):
+        else:
                 tupla = (user_id,parametros.get('limit'),parametros.get('offset'))
                 resultado = cursor.execute(search_meal_template_by_user_id,tupla)
                 meal_template_list = []
@@ -146,5 +149,5 @@ class MealTemplateSearch(Resource):
                     return{'search_result': meal_template_list}
                 else:
                     return{'message': 'No item found.'},404
-        return{'message': 'Please insert a search parameter.'},400
+        #return{'message': 'Please insert a search parameter.'},400
 
