@@ -7,4 +7,5 @@ def extend_license(date,time_months):
     if (date_obj < datetime.now()):
         date_obj = datetime.now()
     date_obj = date_obj + timedelta(time_months*30)
+    date_obj = datetime.strftime(date_obj,date_format)
     return str(date_obj)

@@ -48,7 +48,7 @@ class UserRegister(Resource):
             return {"message": "The password length must be at least 8 digits."}
         dados['password'] = hash_password(dados['password'])
         if UserModel.find_by_login(dados['login']):
-            return {"message": "The login '{}' already exists.".format(dados['login'])}
+            return {"message": "The login '{}' already exists.".format(dados['login'])}, 400
         user = UserModel(**dados)
         user.save_user()
         return {'message':'User created successfully.'}, 201
@@ -78,14 +78,14 @@ class UserRegister(Resource):
             if (dados["password"]) is None:
                 return{'message': "Password is needed to confirm this operation."}
             else:
-                return {"message": "The new password confirmation didn't match."}, 422
+                return {"message": "The new password confirmation didn't match."}, 400
         elif dados['password'] is not None:
             if check_hashed_password(dados['password'], user.password) == False: 
                 return {'message':'Password is not correct.'}, 401
             else:
                 if dados['new_password'] is not None:
                     if (len(dados['new_password'])) < 8:
-                        return {"message": "The password length must be at least 8 digits."}
+                        return {"message": "The password length must be at least 8 digits."}, 400
                     user.password = hash_password(dados['new_password'])
         if dados['store_name']:
             user.store_name = dados['store_name']
