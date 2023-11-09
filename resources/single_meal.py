@@ -27,7 +27,7 @@ class SingleMeal(Resource):
             return {"message": "User type not allowed for this operation."},401
         single_meal = SingleMealModel.find_single_meal(single_meal_id)
         if single_meal:
-            if(jwt.get("user_id") != single_meal.user_id and jwt.get("user_type")!= 0):
+            if(jwt.get("user_id") != single_meal.user_id and single_meal.user_id != user_id and jwt.get("user_type")!= 0):
                 return {"message": "User not allowed for this operation."},401
             try:
                 single_meal.delete_single_meal()
